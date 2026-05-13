@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Учреждения{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">Подведомственные учреждения культуры</h4>
+
+<div class="row g-3">
+    {% for inst in institutions %}
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <h6 class="fw-bold mb-1">{{ inst.short_name }}</h6>
+                <span class="badge bg-light text-dark border small">{{ inst.get_institution_type_display }}</span>
+            </div>
+            <p class="text-muted small mb-2">{{ inst.name }}</p>
+            {% if inst.head_name %}
+            <p class="small mb-1"><i class="bi bi-person me-1"></i>{{ inst.head_name }}</p>
+            {% endif %}
+            {% if inst.address %}
+            <p class="small text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>{{ inst.address }}</p>
+            {% endif %}
+            <a href="{% url 'institution_detail' inst.pk %}" class="btn btn-sm btn-outline-primary mt-auto">
+                Подробнее
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-muted text-center py-5">Учреждения не найдены</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

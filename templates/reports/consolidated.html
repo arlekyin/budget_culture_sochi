@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Сводная ведомость {{ year }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Сводная ведомость</h4>
+    <div class="d-flex gap-2 align-items-center">
+        <!-- Выбор года -->
+        <form method="get" class="d-flex gap-2">
+            <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                {% for y in years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }} год</option>
+                {% endfor %}
+            </select>
+        </form>
+        <a href="{% url 'export_excel' %}?year={{ year }}" class="btn btn-success btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i>Выгрузить Excel
+        </a>
+    </div>
+</div>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">№</th>
+                    <th>Учреждение</th>
+                    <th class="text-end">Лимит (₽)</th>
+                    <th class="text-end">Заявлено (₽)</th>
+                    <th class="text-end">Согласовано (₽)</th>
+                    <th class="text-end">Исполнено (₽)</th>
+                    <th class="text-end">Остаток (₽)</th>
+                    <th style="width:120px">Освоение</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="ps-3 text-muted">{{ forloop.counter }}</td>
+                    <td>
+                        <a href="{% url 'institution_detail' row.institution.pk %}" class="text-decoration-none">
+                            {{ row.institution.short_name }}
+                        </a>
+                    </td>
+                    <td class="text-end">{{ row.limit|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.requested|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.approved|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.fact|floatformat:2 }}</td>
+                    <td class="text-end {% if row.balance < 0 %}text-danger fw-bold{% endif %}">
+                        {{ row.balance|floatformat:2 }}
+                    </td>
+                    <td>
+                        <div class="progress" style="height:16px;">
+                            <div class="progress-bar
+                                {% if row.pct > 90 %}bg-danger{% elif row.pct > 70 %}bg-warning{% else %}bg-success{% endif %}"
+                                style="width:{{ row.pct }}%;font-size:.7rem;line-height:16px;">
+                                {{ row.pct }}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Нет данных</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <!-- Итого -->
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="2" class="ps-3 text-end">ИТОГО:</td>
+                    <td class="text-end">{{ totals.limit|floatformat:2 }}</td>
+                    <td class="text-end">{{ totals.requested|floatformat:2 }}</td>
+                    <td class="text-end">{{ totals.approved|floatformat:2 }}</td>
+                    <td class="text-end">{{ totals.fact|floatformat:2 }}</td>
+                    <td class="text-end {% if totals.balance < 0 %}text-danger{% endif %}">
+                        {{ totals.balance|floatformat:2 }}
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<p class="text-muted small mt-3">
+    <i class="bi bi-info-circle me-1"></i>
+    МКУ «ЦБ УК г. Сочи» — Информационная система «Бюджет-Культура Сочи» — {{ year }} год
+</p>
+{% endblock %}

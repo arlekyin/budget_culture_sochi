@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Новая заявка — {{ institution.short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'request_list' %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left"></i> К списку заявок
+    </a>
+    <h4 class="fw-bold mt-2 mb-0">Новая бюджетная заявка</h4>
+    <p class="text-muted">{{ institution.name }}</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Создать заявку
+                    </button>
+                    <a href="{% url 'request_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="alert alert-info">
+            <h6 class="fw-bold"><i class="bi bi-info-circle me-1"></i>Инструкция</h6>
+            <ol class="mb-0 small">
+                <li>Выберите год планирования и тип периода</li>
+                <li>Укажите тип финансирования (субсидия, платные услуги и т.д.)</li>
+                <li>После создания заявки добавьте строки расходов с указанием КОСГУ</li>
+                <li>Прикрепите файлы-обоснования (КП, счета, сметы)</li>
+                <li>Отправьте заявку в ЦБ кнопкой «Отправить на согласование»</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ institution.short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'institution_list' %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left"></i> К списку учреждений
+    </a>
+</div>
+
+<h4 class="fw-bold mb-1">{{ institution.short_name }}</h4>
+<p class="text-muted mb-4">{{ institution.name }}</p>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Информация</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr><th class="text-muted fw-normal">Тип:</th><td>{{ institution.get_institution_type_display }}</td></tr>
+                <tr><th class="text-muted fw-normal">ИНН:</th><td>{{ institution.inn|default:"—" }}</td></tr>
+                <tr><th class="text-muted fw-normal">Руководитель:</th><td>{{ institution.head_name|default:"—" }}</td></tr>
+                <tr><th class="text-muted fw-normal">Адрес:</th><td>{{ institution.address|default:"—" }}</td></tr>
+            </table>
+        </div>
+
+        <!-- Лимиты по годам -->
+        <div class="card p-3 mt-3">
+            <h6 class="fw-bold mb-3">Лимиты финансирования</h6>
+            {% for limit in limits %}
+            <div class="d-flex justify-content-between">
+                <span class="text-muted">{{ limit.year }} год</span>
+                <span class="fw-semibold">{{ limit.total_limit|floatformat:0 }} ₽</span>
+            </div>
+            {% empty %}
+            <p class="text-muted small">Лимиты не установлены</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Последние заявки</h6>
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr><th>№</th><th>Год</th><th>Сумма (₽)</th><th>Статус</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>{{ req.pk }}</td>
+                        <td>{{ req.period_year }}</td>
+                        <td>{{ req.total_amount|floatformat:2 }}</td>
+                        <td><span class="badge badge-{{ req.status }}">{{ req.get_status_display }}</span></td>
+                        <td><a href="{% url 'request_detail' req.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-muted text-center">Заявок нет</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Ввод кассового расхода{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'dashboard' %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left"></i> На дашборд
+    </a>
+</div>
+<h4 class="fw-bold mb-4">Ввод кассового расхода (факт)</h4>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

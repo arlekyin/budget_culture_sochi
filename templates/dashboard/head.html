@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Управленческий дашборд{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress { height: 20px; }
+    .progress-bar { font-size:.75rem; line-height:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Управленческий дашборд</h4>
+    <span class="badge bg-primary fs-6">{{ year }} год</span>
+</div>
+
+<!-- Сводные KPI -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Суммарный лимит отрасли</div>
+            <div class="fs-5 fw-bold text-primary">{{ total_limit|floatformat:0 }} ₽</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Исполнено (факт)</div>
+            <div class="fs-5 fw-bold text-success">{{ total_fact|floatformat:0 }} ₽</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Остаток</div>
+            <div class="fs-5 fw-bold">{{ total_limit|add:"-0"|floatformat:0 }} ₽</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Общее освоение</div>
+            <div class="fs-4 fw-bold {% if pct_overall > 90 %}text-danger{% elif pct_overall > 70 %}text-warning{% else %}text-success{% endif %}">
+                {{ pct_overall }}%
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Круговая диаграмма -->
+    <div class="col-md-5">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3">Структура расходов по КОСГУ (факт)</h6>
+            <canvas id="kosguChart" height="260"></canvas>
+        </div>
+    </div>
+
+    <!-- Исполнение по учреждениям -->
+    <div class="col-md-7">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3">Исполнение бюджета по учреждениям</h6>
+            <div style="max-height:340px; overflow-y:auto;">
+                {% for item in institution_stats %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>{{ item.institution.short_name }}</span>
+                        <span class="text-muted">{{ item.pct }}% из {{ item.limit|floatformat:0 }} ₽</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar
+                            {% if item.pct > 90 %}bg-danger{% elif item.pct > 70 %}bg-warning{% elif item.pct == 0 %}bg-secondary{% else %}bg-success{% endif %}"
+                            style="width: {{ item.pct }}%">
+                            {% if item.pct > 10 %}{{ item.pct }}%{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">Нет данных о лимитах.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые ссылки -->
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <a href="{% url 'consolidated_report' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
+            <i class="bi bi-table fs-2 text-primary"></i>
+            <div><div class="fw-semibold">Сводная ведомость</div><div class="text-muted small">Полный отчёт по всем учреждениям</div></div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'export_excel' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
+            <i class="bi bi-file-earmark-excel fs-2 text-success"></i>
+            <div><div class="fw-semibold">Экспорт в Excel</div><div class="text-muted small">Форма для Администрации</div></div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'institution_list' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
+            <i class="bi bi-buildings fs-2 text-info"></i>
+            <div><div class="fw-semibold">Учреждения</div><div class="text-muted small">Список подведомственных организаций</div></div>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const kosguData = {{ kosgu_breakdown|safe }};
+const labels = kosguData.map(d => d.kosgu__code + ' — ' + d.kosgu__name.substring(0, 20));
+const data = kosguData.map(d => parseFloat(d.total));
+const colors = ['#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0','#6f42c1','#fd7e14','#20c997'];
+
+new Chart(document.getElementById('kosguChart'), {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 1,
+        }]
+    },
+    options: {
+        plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 } } }
+        }
+    }
+});
+</script>
+{% endblock %}
