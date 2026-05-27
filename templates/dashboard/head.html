@@ -3,77 +3,81 @@
 
 {% block extra_css %}
 <style>
-    .progress { height: 20px; }
-    .progress-bar { font-size:.75rem; line-height:20px; }
+    #kosguChart { max-height: 260px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">Управленческий дашборд</h4>
-    <span class="badge bg-primary fs-6">{{ year }} год</span>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <p class="page-title">Управленческий дашборд</p>
+        <p class="page-subtitle">Сводная аналитика по отрасли «Культура» г. Сочи</p>
+    </div>
+    <span class="year-badge">{{ year }} год</span>
 </div>
 
 <!-- Сводные KPI -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <div class="text-muted small">Суммарный лимит отрасли</div>
-            <div class="fs-5 fw-bold text-primary">{{ total_limit|floatformat:0 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Суммарный лимит отрасли</div>
+            <div class="kpi-value accent" style="font-size:18px;">{{ total_limit|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <div class="text-muted small">Исполнено (факт)</div>
-            <div class="fs-5 fw-bold text-success">{{ total_fact|floatformat:0 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Исполнено (факт)</div>
+            <div class="kpi-value success" style="font-size:18px;">{{ total_fact|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <div class="text-muted small">Остаток</div>
-            <div class="fs-5 fw-bold">{{ total_limit|add:"-0"|floatformat:0 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Остаток</div>
+            <div class="kpi-value" style="font-size:18px;">{{ total_limit|add:"-0"|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <div class="text-muted small">Общее освоение</div>
-            <div class="fs-4 fw-bold {% if pct_overall > 90 %}text-danger{% elif pct_overall > 70 %}text-warning{% else %}text-success{% endif %}">
+        <div class="kpi-card">
+            <div class="kpi-label">Общее освоение</div>
+            <div class="kpi-value {% if pct_overall > 90 %}danger{% elif pct_overall > 70 %}warning{% else %}success{% endif %}">
                 {{ pct_overall }}%
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <!-- Круговая диаграмма -->
+<div class="row g-4 mb-4">
+    <!-- Диаграмма расходов -->
     <div class="col-md-5">
-        <div class="card p-3 h-100">
-            <h6 class="fw-bold mb-3">Структура расходов по КОСГУ (факт)</h6>
-            <canvas id="kosguChart" height="260"></canvas>
+        <div class="card p-4 h-100">
+            <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:16px;">
+                Структура расходов по КОСГУ (факт)
+            </div>
+            <canvas id="kosguChart"></canvas>
         </div>
     </div>
 
     <!-- Исполнение по учреждениям -->
     <div class="col-md-7">
-        <div class="card p-3 h-100">
-            <h6 class="fw-bold mb-3">Исполнение бюджета по учреждениям</h6>
-            <div style="max-height:340px; overflow-y:auto;">
+        <div class="card p-4 h-100">
+            <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:16px;">
+                Исполнение бюджета по учреждениям
+            </div>
+            <div style="max-height:320px;overflow-y:auto;">
                 {% for item in institution_stats %}
-                <div class="mb-2">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span>{{ item.institution.short_name }}</span>
-                        <span class="text-muted">{{ item.pct }}% из {{ item.limit|floatformat:0 }} ₽</span>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1" style="font-size:12px;">
+                        <span style="color:#2F3437;">{{ item.institution.short_name }}</span>
+                        <span style="color:#787774;">{{ item.pct }}% из {{ item.limit|floatformat:0 }} ₽</span>
                     </div>
                     <div class="progress">
                         <div class="progress-bar
                             {% if item.pct > 90 %}bg-danger{% elif item.pct > 70 %}bg-warning{% elif item.pct == 0 %}bg-secondary{% else %}bg-success{% endif %}"
-                            style="width: {{ item.pct }}%">
-                            {% if item.pct > 10 %}{{ item.pct }}%{% endif %}
-                        </div>
+                            style="width: {{ item.pct }}%"></div>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-muted">Нет данных о лимитах.</p>
+                <p style="font-size:13px;color:#787774;">Нет данных о лимитах.</p>
                 {% endfor %}
             </div>
         </div>
@@ -81,23 +85,32 @@
 </div>
 
 <!-- Быстрые ссылки -->
-<div class="row g-3 mt-2">
+<div class="row g-3">
     <div class="col-md-4">
-        <a href="{% url 'consolidated_report' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
-            <i class="bi bi-table fs-2 text-primary"></i>
-            <div><div class="fw-semibold">Сводная ведомость</div><div class="text-muted small">Полный отчёт по всем учреждениям</div></div>
+        <a href="{% url 'consolidated_report' %}" class="action-card">
+            <div class="action-icon purple"><i class="bi bi-table"></i></div>
+            <div>
+                <div class="action-card-title">Сводная ведомость</div>
+                <div class="action-card-desc">Полный отчёт по всем учреждениям</div>
+            </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'export_excel' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
-            <i class="bi bi-file-earmark-excel fs-2 text-success"></i>
-            <div><div class="fw-semibold">Экспорт в Excel</div><div class="text-muted small">Форма для Администрации</div></div>
+        <a href="{% url 'export_pfhd' %}" class="action-card">
+            <div class="action-icon green"><i class="bi bi-file-earmark-excel"></i></div>
+            <div>
+                <div class="action-card-title">Экспорт ПФХД</div>
+                <div class="action-card-desc">Форма для Администрации города</div>
+            </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'institution_list' %}" class="card p-3 text-decoration-none text-dark d-flex flex-row gap-3 align-items-center">
-            <i class="bi bi-buildings fs-2 text-info"></i>
-            <div><div class="fw-semibold">Учреждения</div><div class="text-muted small">Список подведомственных организаций</div></div>
+        <a href="{% url 'institution_list' %}" class="action-card">
+            <div class="action-icon blue"><i class="bi bi-buildings"></i></div>
+            <div>
+                <div class="action-card-title">Учреждения</div>
+                <div class="action-card-desc">Список подведомственных организаций</div>
+            </div>
         </a>
     </div>
 </div>
@@ -106,9 +119,9 @@
 {% block extra_js %}
 <script>
 const kosguData = {{ kosgu_breakdown|safe }};
-const labels = kosguData.map(d => d.kosgu__code + ' — ' + d.kosgu__name.substring(0, 20));
+const labels = kosguData.map(d => d.kosgu__code + ' — ' + d.kosgu__name.substring(0, 18));
 const data = kosguData.map(d => parseFloat(d.total));
-const colors = ['#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0','#6f42c1','#fd7e14','#20c997'];
+const colors = ['#5E5CE6','#346538','#956400','#9F2F2D','#1F6C9F','#7D3A00','#4A48C8','#2a5030'];
 
 new Chart(document.getElementById('kosguChart'), {
     type: 'doughnut',
@@ -117,13 +130,24 @@ new Chart(document.getElementById('kosguChart'), {
         datasets: [{
             data: data,
             backgroundColor: colors,
-            borderWidth: 1,
+            borderWidth: 0,
+            hoverOffset: 4,
         }]
     },
     options: {
         plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 } } }
-        }
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: { size: 11, family: "'SF Pro Display', 'Helvetica Neue', system-ui" },
+                    color: '#787774',
+                    padding: 12,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                }
+            }
+        },
+        cutout: '60%',
     }
 });
 </script>

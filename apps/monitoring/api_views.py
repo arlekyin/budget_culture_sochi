@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.accounts.models import UserRole
+from apps.accounts.utils import get_role
 from .models import FactPayment, Reservation
 from .serializers import FactPaymentSerializer, ReservationSerializer
 
@@ -21,17 +22,19 @@ class FactPaymentListCreateAPI(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        try:
-            profile = user.profile
-            role = profile.role
-        except Exception:
+        role = get_role(user)
+        if role is None:
             return FactPayment.objects.none()
 
         qs = FactPayment.objects.select_related('institution', 'kosgu', 'added_by')
 
         # Директор видит только своё учреждение
-        if role == UserRole.DIRECTOR and profile.institution:
-            qs = qs.filter(institution=profile.institution)
+        if role == UserRole.DIRECTOR:
+            try:
+                if user.profile.institution:
+                    qs = qs.filter(institution=user.profile.institution)
+            except Exception:
+                return FactPayment.objects.none()
 
         # Фильтры по году и учреждению
         year = self.request.query_params.get('year')
@@ -56,16 +59,18 @@ class ReservationListCreateAPI(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        try:
-            profile = user.profile
-            role = profile.role
-        except Exception:
+        role = get_role(user)
+        if role is None:
             return Reservation.objects.none()
 
         qs = Reservation.objects.select_related('institution', 'kosgu', 'created_by')
 
-        if role == UserRole.DIRECTOR and profile.institution:
-            qs = qs.filter(institution=profile.institution)
+        if role == UserRole.DIRECTOR:
+            try:
+                if user.profile.institution:
+                    qs = qs.filter(institution=user.profile.institution)
+            except Exception:
+                return Reservation.objects.none()
 
         year = self.request.query_params.get('year')
         if year:

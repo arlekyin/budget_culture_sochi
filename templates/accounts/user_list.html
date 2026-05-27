@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Пользователи системы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="page-title">Пользователи системы</p>
+        <p class="page-subtitle">Управление учётными записями</p>
+    </div>
+    <a href="{% url 'register' %}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Создать пользователя
+    </a>
+</div>
+
+{% if messages %}
+    {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th>Логин</th>
+                <th>Роль</th>
+                <th>Учреждение</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div style="font-weight:500;">{{ u.get_full_name|default:u.username }}</div>
+                </td>
+                <td style="color:#787774;font-size:13px;">{{ u.username }}</td>
+                <td>
+                    {% if u.is_superuser %}
+                        <span class="badge bg-danger">Суперпользователь</span>
+                    {% elif u.profile %}
+                        {% if u.profile.role == 'admin' %}
+                            <span class="badge bg-primary">{{ u.profile.get_role_display }}</span>
+                        {% elif u.profile.role == 'accountant' %}
+                            <span class="badge bg-success">{{ u.profile.get_role_display }}</span>
+                        {% elif u.profile.role == 'head' %}
+                            <span class="badge bg-warning text-dark">{{ u.profile.get_role_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ u.profile.get_role_display }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-light text-dark">Нет роли</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:13px;">
+                    {% if u.profile and u.profile.institution %}
+                        {{ u.profile.institution.short_name }}
+                    {% else %}
+                        <span style="color:#787774;">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="badge bg-success-subtle text-success">Активен</span>
+                    {% else %}
+                        <span class="badge bg-danger-subtle text-danger">Заблокирован</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if not u.is_superuser %}
+                    <a href="{% url 'user_delete' u.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Пользователей нет</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

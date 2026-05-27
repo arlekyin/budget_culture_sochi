@@ -2,107 +2,114 @@
 {% block title %}Рабочее место бухгалтера ЦБ{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">Рабочее место бухгалтера ЦБ</h4>
-    <span class="badge bg-primary fs-6">{{ year }} год</span>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <p class="page-title">Рабочее место бухгалтера ЦБ</p>
+        <p class="page-subtitle">МКУ «ЦБ УК г. Сочи»</p>
+    </div>
+    <span class="year-badge">{{ year }} год</span>
 </div>
 
 <!-- Статистика -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card p-3 h-100 border-start border-4 border-warning">
-            <div class="text-muted small">На проверке</div>
-            <div class="fs-3 fw-bold text-warning">{{ stats.submitted }}</div>
+        <div class="kpi-card" style="border-left:3px solid #956400;">
+            <div class="kpi-label">На проверке</div>
+            <div class="kpi-value warning">{{ stats.submitted }}</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100 border-start border-4 border-secondary">
-            <div class="text-muted small">Черновики</div>
-            <div class="fs-3 fw-bold text-secondary">{{ stats.draft }}</div>
+        <div class="kpi-card" style="border-left:3px solid #CCCCCC;">
+            <div class="kpi-label">Черновики</div>
+            <div class="kpi-value" style="color:#787774;">{{ stats.draft }}</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100 border-start border-4 border-success">
-            <div class="text-muted small">Согласовано ({{ year }})</div>
-            <div class="fs-3 fw-bold text-success">{{ stats.approved }}</div>
+        <div class="kpi-card" style="border-left:3px solid #346538;">
+            <div class="kpi-label">Согласовано ({{ year }})</div>
+            <div class="kpi-value success">{{ stats.approved }}</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100 border-start border-4 border-primary">
-            <div class="text-muted small">Сумма согласована</div>
-            <div class="fs-5 fw-bold text-primary">{{ stats.total_approved_amount|floatformat:0 }} ₽</div>
+        <div class="kpi-card" style="border-left:3px solid #5E5CE6;">
+            <div class="kpi-label">Сумма согласована</div>
+            <div class="kpi-value accent" style="font-size:18px;">{{ stats.total_approved_amount|floatformat:0 }} ₽</div>
         </div>
     </div>
 </div>
 
 <!-- Входящие заявки -->
-<div class="card p-3 mb-4">
-    <h6 class="fw-bold mb-3">
-        <i class="bi bi-inbox-fill text-warning me-2"></i>Входящие — требуют проверки
-    </h6>
+<div class="card mb-4">
+    <div class="p-4" style="border-bottom:1px solid #F0F0F0;">
+        <span style="font-size:14px;font-weight:600;color:#111;">
+            <i class="bi bi-inbox me-2" style="color:#956400;"></i>Входящие — требуют проверки
+        </span>
+    </div>
     {% if pending_requests %}
-    <table class="table table-hover table-sm mb-0">
-        <thead class="table-light">
-            <tr>
-                <th>№</th>
-                <th>Учреждение</th>
-                <th>Период</th>
-                <th>Сумма (руб.)</th>
-                <th>Отправлена</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for req in pending_requests %}
-            <tr>
-                <td>{{ req.pk }}</td>
-                <td>{{ req.institution.short_name }}</td>
-                <td>{{ req.period_year }}{% if req.period_quarter %} / {{ req.get_period_quarter_display }}{% endif %}</td>
-                <td class="fw-semibold">{{ req.total_amount|floatformat:2 }}</td>
-                <td class="text-muted small">{{ req.submitted_at|date:"d.m.Y H:i" }}</td>
-                <td>
-                    <a href="{% url 'request_detail' req.pk %}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-check2-circle"></i> Проверить
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">№</th>
+                    <th>Учреждение</th>
+                    <th>Период</th>
+                    <th>Сумма (руб.)</th>
+                    <th>Отправлена</th>
+                    <th class="pe-4"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending_requests %}
+                <tr>
+                    <td class="ps-4" style="color:#787774;">#{{ req.pk }}</td>
+                    <td style="font-weight:500;">{{ req.institution.short_name }}</td>
+                    <td>{{ req.period_year }}{% if req.period_quarter %} / {{ req.get_period_quarter_display }}{% endif %}</td>
+                    <td style="font-weight:600;">{{ req.total_amount|floatformat:0 }}</td>
+                    <td style="color:#787774;font-size:12px;">{{ req.submitted_at|date:"d.m.Y H:i" }}</td>
+                    <td class="pe-4 text-end">
+                        <a href="{% url 'request_detail' req.pk %}" class="btn btn-primary btn-sm">
+                            Проверить
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p class="text-muted text-center py-3 mb-0">
-        <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-2"></i>
-        Нет заявок, ожидающих проверки
-    </p>
+    <div class="text-center py-5">
+        <i class="bi bi-check-circle" style="font-size:24px;color:#346538;display:block;margin-bottom:8px;"></i>
+        <span style="font-size:13px;color:#787774;">Нет заявок, ожидающих проверки</span>
+    </div>
     {% endif %}
 </div>
 
 <!-- Быстрые действия -->
 <div class="row g-3">
     <div class="col-md-4">
-        <a href="{% url 'consolidated_report' %}" class="card p-3 text-decoration-none text-dark h-100 d-flex flex-row align-items-center gap-3">
-            <i class="bi bi-table fs-2 text-primary"></i>
+        <a href="{% url 'consolidated_report' %}" class="action-card">
+            <div class="action-icon purple"><i class="bi bi-table"></i></div>
             <div>
-                <div class="fw-semibold">Сводная ведомость</div>
-                <div class="text-muted small">Все учреждения × суммы</div>
+                <div class="action-card-title">Сводная ведомость</div>
+                <div class="action-card-desc">Все учреждения × суммы</div>
             </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'export_excel' %}" class="card p-3 text-decoration-none text-dark h-100 d-flex flex-row align-items-center gap-3">
-            <i class="bi bi-file-earmark-excel fs-2 text-success"></i>
+        <a href="{% url 'export_pfhd' %}" class="action-card">
+            <div class="action-icon green"><i class="bi bi-file-earmark-excel"></i></div>
             <div>
-                <div class="fw-semibold">Экспорт Excel</div>
-                <div class="text-muted small">Готовая форма для администрации</div>
+                <div class="action-card-title">Экспорт ПФХД</div>
+                <div class="action-card-desc">Официальная форма для администрации</div>
             </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'fact_payment_create' %}" class="card p-3 text-decoration-none text-dark h-100 d-flex flex-row align-items-center gap-3">
-            <i class="bi bi-cash-stack fs-2 text-warning"></i>
+        <a href="{% url 'fact_payment_create' %}" class="action-card">
+            <div class="action-icon amber"><i class="bi bi-cash-stack"></i></div>
             <div>
-                <div class="fw-semibold">Ввести кассовый расход</div>
-                <div class="text-muted small">Фактическое исполнение</div>
+                <div class="action-card-title">Ввести кассовый расход</div>
+                <div class="action-card-desc">Фактическое исполнение</div>
             </div>
         </a>
     </div>

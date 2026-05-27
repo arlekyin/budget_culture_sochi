@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Редактирование пользователя — {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'user_list' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> К списку пользователей
+</a>
+
+<div class="mb-4">
+    <p class="page-title">Редактирование пользователя</p>
+    <p class="page-subtitle">{{ target_user.get_full_name|default:target_user.username }}</p>
+</div>
+
+{% if messages %}
+    {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Логин</label>
+                    <input type="text" class="form-control" value="{{ target_user.username }}" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Роль <span class="text-danger">*</span></label>
+                    <select name="role" class="form-select" id="roleSelect">
+                        {% for value, label in roles %}
+                            <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3" id="institutionBlock">
+                    <label class="form-label fw-semibold">Учреждение</label>
+                    <select name="institution" class="form-select">
+                        <option value="">— не привязано —</option>
+                        {% for inst in institutions %}
+                            <option value="{{ inst.pk }}"
+                                {% if profile.institution and profile.institution.pk == inst.pk %}selected{% endif %}>
+                                {{ inst.short_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Обязательно только для роли «Директор учреждения»</div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Сохранить
+                    </button>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('roleSelect').addEventListener('change', function() {
+    const block = document.getElementById('institutionBlock');
+    block.style.display = this.value === 'director' ? 'block' : 'none';
+});
+// Инициализация при загрузке
+(function() {
+    const sel = document.getElementById('roleSelect');
+    const block = document.getElementById('institutionBlock');
+    block.style.display = sel.value === 'director' ? 'block' : 'none';
+})();
+</script>
+{% endblock %}

@@ -3,24 +3,37 @@
 {% block title %}Ввод кассового расхода{% endblock %}
 
 {% block content %}
-<div class="mb-3">
-    <a href="{% url 'dashboard' %}" class="text-muted text-decoration-none small">
-        <i class="bi bi-arrow-left"></i> На дашборд
-    </a>
-</div>
-<h4 class="fw-bold mb-4">Ввод кассового расхода (факт)</h4>
+<a href="{% url 'dashboard' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> На дашборд
+</a>
 
-<div class="row">
+<div class="mb-4">
+    <p class="page-title">Ввод кассового расхода</p>
+    <p class="page-subtitle">Фактическое исполнение бюджета</p>
+</div>
+
+<div class="row g-4">
     <div class="col-md-6">
         <div class="card p-4">
             <form method="post">
                 {% csrf_token %}
                 {{ form|crispy }}
-                <div class="d-flex gap-2 mt-3">
+                <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">Сохранить</button>
                     <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Отмена</a>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card p-4" style="background:#FAFAFA;">
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#787774;margin-bottom:10px;">
+                Справка
+            </div>
+            <p style="font-size:13px;color:#2F3437;line-height:1.6;margin:0;">
+                Фактический кассовый расход фиксирует оплаченный счёт.
+                Данные учитываются в сводной ведомости и уменьшают свободный остаток лимита учреждения.
+            </p>
         </div>
     </div>
 </div>

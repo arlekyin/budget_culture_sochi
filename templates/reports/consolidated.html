@@ -2,80 +2,90 @@
 {% block title %}Сводная ведомость {{ year }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">Сводная ведомость</h4>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <p class="page-title">Сводная ведомость</p>
+        <p class="page-subtitle">МКУ «ЦБ УК г. Сочи» — все подведомственные учреждения</p>
+    </div>
     <div class="d-flex gap-2 align-items-center">
-        <!-- Выбор года -->
         <form method="get" class="d-flex gap-2">
-            <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="year" class="form-select form-select-sm" onchange="this.form.submit()"
+                    style="width:110px;">
                 {% for y in years %}
                 <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }} год</option>
                 {% endfor %}
             </select>
         </form>
-        <a href="{% url 'export_excel' %}?year={{ year }}" class="btn btn-success btn-sm">
-            <i class="bi bi-file-earmark-excel me-1"></i>Выгрузить Excel
+        <a href="{% url 'export_pfhd' %}?year={{ year }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i>Экспорт ПФХД
+        </a>
+        <a href="{% url 'export_excel' %}?year={{ year }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Сводная Excel
         </a>
     </div>
 </div>
 
-<div class="card p-0">
+<div class="card">
     <div class="table-responsive">
-        <table class="table table-bordered table-hover mb-0">
-            <thead class="table-dark">
+        <table class="table table-hover mb-0">
+            <thead>
                 <tr>
-                    <th class="ps-3">№</th>
+                    <th class="ps-4" style="width:40px;">№</th>
                     <th>Учреждение</th>
                     <th class="text-end">Лимит (₽)</th>
                     <th class="text-end">Заявлено (₽)</th>
                     <th class="text-end">Согласовано (₽)</th>
                     <th class="text-end">Исполнено (₽)</th>
                     <th class="text-end">Остаток (₽)</th>
-                    <th style="width:120px">Освоение</th>
+                    <th style="width:120px;">Освоение</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in rows %}
                 <tr>
-                    <td class="ps-3 text-muted">{{ forloop.counter }}</td>
+                    <td class="ps-4" style="color:#787774;">{{ forloop.counter }}</td>
                     <td>
-                        <a href="{% url 'institution_detail' row.institution.pk %}" class="text-decoration-none">
+                        <a href="{% url 'institution_detail' row.institution.pk %}"
+                           style="text-decoration:none;color:#2F3437;font-weight:500;">
                             {{ row.institution.short_name }}
                         </a>
                     </td>
-                    <td class="text-end">{{ row.limit|floatformat:2 }}</td>
-                    <td class="text-end">{{ row.requested|floatformat:2 }}</td>
-                    <td class="text-end">{{ row.approved|floatformat:2 }}</td>
-                    <td class="text-end">{{ row.fact|floatformat:2 }}</td>
-                    <td class="text-end {% if row.balance < 0 %}text-danger fw-bold{% endif %}">
-                        {{ row.balance|floatformat:2 }}
+                    <td class="text-end">{{ row.limit|floatformat:0 }}</td>
+                    <td class="text-end">{{ row.requested|floatformat:0 }}</td>
+                    <td class="text-end">{{ row.approved|floatformat:0 }}</td>
+                    <td class="text-end">{{ row.fact|floatformat:0 }}</td>
+                    <td class="text-end {% if row.balance < 0 %}text-danger fw-semibold{% endif %}">
+                        {{ row.balance|floatformat:0 }}
                     </td>
                     <td>
-                        <div class="progress" style="height:16px;">
-                            <div class="progress-bar
-                                {% if row.pct > 90 %}bg-danger{% elif row.pct > 70 %}bg-warning{% else %}bg-success{% endif %}"
-                                style="width:{{ row.pct }}%;font-size:.7rem;line-height:16px;">
-                                {{ row.pct }}%
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar
+                                    {% if row.pct > 90 %}bg-danger{% elif row.pct > 70 %}bg-warning{% else %}bg-success{% endif %}"
+                                    style="width:{{ row.pct }}%;"></div>
                             </div>
+                            <span style="font-size:11px;color:#787774;width:30px;text-align:right;">{{ row.pct }}%</span>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">Нет данных</td>
+                    <td colspan="8" class="text-center py-5" style="color:#787774;">Нет данных</td>
                 </tr>
                 {% endfor %}
             </tbody>
-            <!-- Итого -->
-            <tfoot class="table-light fw-bold">
+            <tfoot>
                 <tr>
-                    <td colspan="2" class="ps-3 text-end">ИТОГО:</td>
-                    <td class="text-end">{{ totals.limit|floatformat:2 }}</td>
-                    <td class="text-end">{{ totals.requested|floatformat:2 }}</td>
-                    <td class="text-end">{{ totals.approved|floatformat:2 }}</td>
-                    <td class="text-end">{{ totals.fact|floatformat:2 }}</td>
+                    <td colspan="2" class="ps-4 text-end"
+                        style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#787774;">
+                        Итого:
+                    </td>
+                    <td class="text-end">{{ totals.limit|floatformat:0 }}</td>
+                    <td class="text-end">{{ totals.requested|floatformat:0 }}</td>
+                    <td class="text-end">{{ totals.approved|floatformat:0 }}</td>
+                    <td class="text-end">{{ totals.fact|floatformat:0 }}</td>
                     <td class="text-end {% if totals.balance < 0 %}text-danger{% endif %}">
-                        {{ totals.balance|floatformat:2 }}
+                        {{ totals.balance|floatformat:0 }}
                     </td>
                     <td></td>
                 </tr>
@@ -84,8 +94,8 @@
     </div>
 </div>
 
-<p class="text-muted small mt-3">
+<p style="font-size:12px;color:#A0A09E;margin-top:12px;">
     <i class="bi bi-info-circle me-1"></i>
-    МКУ «ЦБ УК г. Сочи» — Информационная система «Бюджет-Культура Сочи» — {{ year }} год
+    Информационная система «Бюджет-Культура Сочи» — {{ year }} год
 </p>
 {% endblock %}

@@ -2,98 +2,110 @@
 {% block title %}Дашборд — {{ institution.short_name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">{{ institution.short_name }}</h4>
-        <p class="text-muted mb-0 small">{{ institution.name }}</p>
+        <p class="page-title">{{ institution.short_name }}</p>
+        <p class="page-subtitle">{{ institution.name }}</p>
     </div>
-    <span class="badge bg-primary fs-6">{{ year }} год</span>
+    <span class="year-badge">{{ year }} год</span>
 </div>
 
-<!-- Карточки-виджеты -->
+<!-- KPI карточки -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card p-3 h-100">
-            <div class="text-muted small">Годовой лимит</div>
-            <div class="fs-4 fw-bold text-primary">{{ limit|floatformat:2 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Годовой лимит</div>
+            <div class="kpi-value accent">{{ limit|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100">
-            <div class="text-muted small">Исполнено (факт)</div>
-            <div class="fs-4 fw-bold text-success">{{ fact_total|floatformat:2 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Исполнено (факт)</div>
+            <div class="kpi-value success">{{ fact_total|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100">
-            <div class="text-muted small">Зарезервировано</div>
-            <div class="fs-4 fw-bold text-warning">{{ reserved_total|floatformat:2 }} ₽</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Зарезервировано</div>
+            <div class="kpi-value warning">{{ reserved_total|floatformat:0 }} ₽</div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 h-100">
-            <div class="text-muted small">Свободный остаток</div>
-            <div class="fs-4 fw-bold {% if free < 0 %}text-danger{% else %}text-dark{% endif %}">
-                {{ free|floatformat:2 }} ₽
+        <div class="kpi-card">
+            <div class="kpi-label">Свободный остаток</div>
+            <div class="kpi-value {% if free < 0 %}danger{% endif %}">
+                {{ free|floatformat:0 }} ₽
             </div>
         </div>
     </div>
 </div>
 
-<!-- Прогресс-бар освоения -->
-<div class="card mb-4 p-3">
-    <div class="d-flex justify-content-between mb-1">
-        <span class="fw-semibold">Освоение бюджета</span>
-        <span class="text-muted small">{{ pct_used }}%</span>
+<!-- Прогресс освоения -->
+<div class="card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span style="font-size:13px;font-weight:600;color:#111;">Освоение бюджета</span>
+        <span style="font-size:12px;color:#787774;">{{ pct_used }}%</span>
     </div>
-    <div class="progress" style="height: 18px;">
+    <div class="progress">
         <div class="progress-bar {% if pct_used > 90 %}bg-danger{% elif pct_used > 70 %}bg-warning{% else %}bg-success{% endif %}"
-             style="width: {{ pct_used }}%;">
-            {{ pct_used }}%
-        </div>
+             style="width: {{ pct_used }}%;"></div>
     </div>
     {% if pct_used < 20 %}
-    <div class="text-danger small mt-1">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+    <div class="mt-2" style="font-size:12px;color:#9F2F2D;">
+        <i class="bi bi-exclamation-triangle me-1"></i>
         Низкий процент освоения — риск неосвоения средств до конца года.
     </div>
     {% endif %}
 </div>
 
 <!-- Последние заявки -->
-<div class="card p-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0 fw-bold">Мои заявки</h6>
-        <a href="{% url 'request_create' %}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-circle"></i> Новая заявка
+<div class="card">
+    <div class="d-flex justify-content-between align-items-center p-4" style="border-bottom:1px solid #F0F0F0;">
+        <span style="font-size:14px;font-weight:600;color:#111;">Мои заявки</span>
+        <a href="{% url 'request_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-square me-1"></i>Новая заявка
         </a>
     </div>
+
     {% if recent_requests %}
-    <table class="table table-hover table-sm mb-0">
-        <thead class="table-light">
-            <tr>
-                <th>№</th><th>Период</th><th>Сумма заявлена</th><th>Статус</th><th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for req in recent_requests %}
-            <tr>
-                <td>{{ req.pk }}</td>
-                <td>{{ req.period_year }}{% if req.period_quarter %} / {{ req.get_period_quarter_display }}{% endif %}</td>
-                <td>{{ req.total_amount|floatformat:2 }} ₽</td>
-                <td>
-                    <span class="badge badge-{{ req.status }}">{{ req.get_status_display }}</span>
-                </td>
-                <td><a href="{% url 'request_detail' req.pk %}" class="btn btn-xs btn-outline-secondary btn-sm">Открыть</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">№</th>
+                    <th>Период</th>
+                    <th>Сумма заявлена</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in recent_requests %}
+                <tr>
+                    <td class="ps-4" style="color:#787774;">#{{ req.pk }}</td>
+                    <td>{{ req.period_year }}{% if req.period_quarter %} / {{ req.get_period_quarter_display }}{% endif %}</td>
+                    <td style="font-weight:600;">{{ req.total_amount|floatformat:0 }} ₽</td>
+                    <td><span class="badge badge-{{ req.status }}">{{ req.get_status_display }}</span></td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'request_detail' req.pk %}" class="btn btn-outline-secondary btn-sm">
+                            Открыть
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p class="text-muted text-center py-3 mb-0">Заявок нет. Создайте первую!</p>
+    <div class="text-center py-5">
+        <div style="font-size:13px;color:#787774;">Заявок нет. Создайте первую!</div>
+    </div>
     {% endif %}
-    <div class="text-end mt-2">
-        <a href="{% url 'request_list' %}" class="text-muted small">Все заявки →</a>
+
+    <div class="px-4 py-2" style="border-top:1px solid #F0F0F0;">
+        <a href="{% url 'request_list' %}" style="font-size:12px;color:#787774;text-decoration:none;">
+            Все заявки →
+        </a>
     </div>
 </div>
 {% endblock %}

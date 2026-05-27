@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Удаление пользователя — {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'user_list' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> К списку пользователей
+</a>
+
+<div class="mb-4">
+    <p class="page-title">Удаление пользователя</p>
+</div>
+
+<div class="card p-4" style="max-width:480px;">
+    <p style="font-size:15px;">
+        Вы уверены, что хотите удалить пользователя
+        <strong>{{ target_user.get_full_name|default:target_user.username }}</strong>
+        (логин: <code>{{ target_user.username }}</code>)?
+    </p>
+    <p class="text-danger" style="font-size:13px;">Это действие нельзя отменить. Все данные пользователя будут удалены.</p>
+    <div class="d-flex gap-2 mt-3">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Удалить
+            </button>
+        </form>
+        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Отмена</a>
+    </div>
+</div>
+{% endblock %}

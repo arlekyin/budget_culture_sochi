@@ -6,14 +6,20 @@ from django.db.models import Q
 
 from apps.accounts.models import UserRole
 from .models import BudgetRequest, RequestLine, RequestStatus, RequestLineLog
-from .forms import BudgetRequestForm, RequestLineForm, ReviewForm
+from .forms import AdminBudgetRequestForm, BudgetRequestForm, RequestLineForm, ReviewForm
 
 
 def _role(request):
+    if request.user.is_superuser:
+        return UserRole.ADMIN
     try:
         return request.user.profile.role
     except Exception:
         return None
+
+
+def _is_admin(request) -> bool:
+    return _role(request) == UserRole.ADMIN
 
 
 @login_required
@@ -46,29 +52,36 @@ def request_list(request):
 
 @login_required
 def request_create(request):
-    """Создание новой бюджетной заявки (только директор учреждения)."""
+    """Создание новой бюджетной заявки (директор учреждения или администратор)."""
     role = _role(request)
-    if role != UserRole.DIRECTOR:
-        messages.error(request, 'Создавать заявки могут только директора учреждений.')
+    is_admin = role == UserRole.ADMIN
+
+    if role not in (UserRole.DIRECTOR, UserRole.ADMIN):
+        messages.error(request, 'Создавать заявки могут только директора учреждений или администратор.')
         return redirect('request_list')
 
-    institution = request.user.profile.institution
-    if not institution:
-        messages.error(request, 'Ваш профиль не привязан к учреждению.')
-        return redirect('dashboard')
+    form_class = AdminBudgetRequestForm if is_admin else BudgetRequestForm
+
+    if not is_admin:
+        institution = request.user.profile.institution
+        if not institution:
+            messages.error(request, 'Ваш профиль не привязан к учреждению.')
+            return redirect('dashboard')
+    else:
+        institution = None
 
     if request.method == 'POST':
-        form = BudgetRequestForm(request.POST)
+        form = form_class(request.POST)
         if form.is_valid():
             budget_request = form.save(commit=False)
-            budget_request.institution = institution
+            budget_request.institution = form.cleaned_data['institution'] if is_admin else institution
             budget_request.created_by = request.user
             budget_request.status = RequestStatus.DRAFT
             budget_request.save()
             messages.success(request, 'Заявка создана. Теперь добавьте строки расходов.')
             return redirect('request_detail', pk=budget_request.pk)
     else:
-        form = BudgetRequestForm()
+        form = form_class()
 
     return render(request, 'budget_requests/create.html', {'form': form, 'institution': institution})
 
@@ -79,7 +92,7 @@ def request_detail(request, pk: int):
     budget_request = get_object_or_404(BudgetRequest, pk=pk)
     role = _role(request)
 
-    # Директор видит только свои заявки
+    # Директор видит только свои заявки; администратор видит все
     if role == UserRole.DIRECTOR:
         if budget_request.institution != request.user.profile.institution:
             messages.error(request, 'Доступ запрещён.')
@@ -88,10 +101,13 @@ def request_detail(request, pk: int):
     lines = budget_request.lines.select_related('kosgu', 'kvr').all()
     can_edit = (
         budget_request.status in (RequestStatus.DRAFT, RequestStatus.RETURNED)
-        and role == UserRole.DIRECTOR
+        and role in (UserRole.DIRECTOR, UserRole.ADMIN)
     )
     can_submit = can_edit and budget_request.lines.exists()
-    can_review = role == UserRole.ACCOUNTANT and budget_request.status == RequestStatus.SUBMITTED
+    can_review = (
+        role in (UserRole.ACCOUNTANT, UserRole.ADMIN)
+        and budget_request.status == RequestStatus.SUBMITTED
+    )
 
     line_form = RequestLineForm() if can_edit else None
     review_form = ReviewForm() if can_review else None
@@ -114,7 +130,10 @@ def request_line_add(request, pk: int):
     budget_request = get_object_or_404(BudgetRequest, pk=pk)
     role = _role(request)
 
-    if role != UserRole.DIRECTOR or budget_request.institution != request.user.profile.institution:
+    if not _is_admin(request) and (
+        role != UserRole.DIRECTOR
+        or budget_request.institution != request.user.profile.institution
+    ):
         messages.error(request, 'Доступ запрещён.')
         return redirect('request_list')
 
@@ -142,7 +161,10 @@ def request_line_delete(request, pk: int, line_pk: int):
     line = get_object_or_404(RequestLine, pk=line_pk, request=budget_request)
     role = _role(request)
 
-    if role != UserRole.DIRECTOR or budget_request.institution != request.user.profile.institution:
+    if not _is_admin(request) and (
+        role != UserRole.DIRECTOR
+        or budget_request.institution != request.user.profile.institution
+    ):
         messages.error(request, 'Доступ запрещён.')
         return redirect('request_list')
 
@@ -161,7 +183,10 @@ def request_submit(request, pk: int):
     budget_request = get_object_or_404(BudgetRequest, pk=pk)
     role = _role(request)
 
-    if role != UserRole.DIRECTOR or budget_request.institution != request.user.profile.institution:
+    if not _is_admin(request) and (
+        role != UserRole.DIRECTOR
+        or budget_request.institution != request.user.profile.institution
+    ):
         messages.error(request, 'Доступ запрещён.')
         return redirect('request_list')
 
@@ -193,8 +218,8 @@ def request_review(request, pk: int):
     budget_request = get_object_or_404(BudgetRequest, pk=pk)
     role = _role(request)
 
-    if role != UserRole.ACCOUNTANT:
-        messages.error(request, 'Только бухгалтер ЦБ может проверять заявки.')
+    if role not in (UserRole.ACCOUNTANT, UserRole.ADMIN):
+        messages.error(request, 'Только бухгалтер ЦБ или администратор может проверять заявки.')
         return redirect('request_list')
 
     if budget_request.status != RequestStatus.SUBMITTED:

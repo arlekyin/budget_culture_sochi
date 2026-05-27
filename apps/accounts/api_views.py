@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 
 from apps.accounts.models import UserRole
+from apps.accounts.utils import get_role
 from apps.budget_requests.models import BudgetRequest, RequestStatus
 from apps.institutions.models import Institution, BudgetLimit
 from apps.monitoring.models import FactPayment, Reservation
@@ -77,20 +78,19 @@ class DashboardAPI(APIView):
 
     def get(self, request) -> Response:
         user = request.user
-        try:
-            profile = user.profile
-            role = profile.role
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
+        role = get_role(user)
         year = int(request.GET.get('year', 2026))
 
         if role == UserRole.DIRECTOR:
+            try:
+                profile = user.profile
+            except Exception:
+                return Response({'detail': 'Профиль не найден.'}, status=404)
             return Response(_director_dashboard(profile, year))
         elif role == UserRole.ACCOUNTANT:
             return Response(_accountant_dashboard(year))
         else:
-            # HEAD or ADMIN
+            # HEAD or ADMIN (including superuser)
             return Response(_head_dashboard(year))
 
 
@@ -100,6 +100,16 @@ class DashboardAPI(APIView):
 
 def _serialize_user(user) -> dict:
     """Сериализует пользователя и его профиль."""
+    if user.is_superuser:
+        return {
+            'id': user.id,
+            'username': user.username,
+            'firstName': user.first_name,
+            'lastName': user.last_name,
+            'role': UserRole.ADMIN,
+            'roleDisplay': 'Администратор системы',
+            'institution': None,
+        }
     try:
         profile = user.profile
         institution = None

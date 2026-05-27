@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Создание пользователя{% endblock %}
+
+{% block content %}
+<a href="{% url 'user_list' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> К списку пользователей
+</a>
+
+<div class="mb-4">
+    <p class="page-title">Создание пользователя</p>
+    <p class="page-subtitle">Новая учётная запись в системе</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-1"></i>Создать пользователя
+                    </button>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card p-4">
+            <div style="font-size:12px;font-weight:600;color:#787774;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">
+                Роли в системе
+            </div>
+            <ul style="font-size:13px;color:#2F3437;padding-left:18px;margin:0;line-height:1.9;">
+                <li><strong>Директор учреждения</strong> — создаёт и отправляет заявки своего учреждения</li>
+                <li><strong>Бухгалтер ЦБ</strong> — согласует и отклоняет заявки всех учреждений</li>
+                <li><strong>Администратор системы</strong> — полный доступ ко всем функциям</li>
+                <li><strong>Руководитель Управления культуры</strong> — просмотр аналитики и отчётов</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

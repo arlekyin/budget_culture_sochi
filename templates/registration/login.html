@@ -5,52 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход — Бюджет-Культура Сочи</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #1a3a5c 0%, #2c5282 100%); min-height: 100vh; display:flex; align-items:center; }
-        .login-card { border-radius: 1rem; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-        .login-logo { font-size: 2rem; font-weight: 700; color: #1a3a5c; }
+        body {
+            font-family: 'SF Pro Display', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+            background-color: #F7F6F3;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-wrap {
+            width: 100%;
+            max-width: 360px;
+            padding: 24px;
+        }
+        .login-logo {
+            width: 40px;
+            height: 40px;
+            background: #5E5CE6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+        .login-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111111;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+        .login-sub {
+            font-size: 13px;
+            color: #787774;
+            margin-bottom: 28px;
+        }
+        .login-card {
+            background: #ffffff;
+            border: 1px solid #EAEAEA;
+            border-radius: 10px;
+            padding: 28px;
+        }
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #555555;
+            margin-bottom: 4px;
+        }
+        .form-control {
+            border: 1px solid #DCDCDC;
+            border-radius: 5px;
+            font-size: 13px;
+            padding: 8px 11px;
+            background: #ffffff;
+            color: #111111;
+            box-shadow: none;
+        }
+        .form-control:focus {
+            border-color: #AAAAAA;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+            outline: none;
+        }
+        .btn-login {
+            background: #111111;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 9px 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .btn-login:hover { background: #333333; }
+        .btn-login:active { transform: scale(0.98); }
+        .error-box {
+            background: #FDEBEC;
+            border: 1px solid #F5D0D1;
+            color: #9F2F2D;
+            border-radius: 5px;
+            font-size: 12px;
+            padding: 9px 12px;
+            margin-bottom: 16px;
+        }
+        .login-footer {
+            font-size: 12px;
+            color: #A0A09E;
+            text-align: center;
+            margin-top: 20px;
+        }
+        hr { border-color: #EAEAEA; margin: 20px 0; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-4">
-            <div class="card login-card p-4">
-                <div class="text-center mb-4">
-                    <div class="login-logo">🏛</div>
-                    <h4 class="mt-2 mb-0 fw-bold text-dark">Бюджет-Культура Сочи</h4>
-                    <p class="text-muted small">МКУ «ЦБ УК г. Сочи»</p>
-                </div>
+<div class="login-wrap">
+    <div class="login-logo"><i class="bi bi-bank2"></i></div>
+    <div class="login-title">Бюджет-Культура Сочи</div>
+    <div class="login-sub">МКУ «ЦБ УК г. Сочи»</div>
 
-                {% if form.errors %}
-                <div class="alert alert-danger small">
-                    Неверный логин или пароль.
-                </div>
-                {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label fw-semibold">Логин</label>
-                        <input type="text" name="username" id="id_username"
-                               class="form-control" placeholder="username" autofocus required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="id_password" class="form-label fw-semibold">Пароль</label>
-                        <input type="password" name="password" id="id_password"
-                               class="form-control" required>
-                    </div>
-                    <input type="hidden" name="next" value="{{ next }}">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
-                        Войти в систему
-                    </button>
-                </form>
-                <hr>
-                <p class="text-center text-muted small mb-0">
-                    Для получения доступа обратитесь к администратору системы
-                </p>
-            </div>
+    <div class="login-card">
+        {% if form.errors %}
+        <div class="error-box">
+            <i class="bi bi-exclamation-circle me-1"></i>Неверный логин или пароль.
         </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_username" class="form-label">Логин</label>
+                <input type="text" name="username" id="id_username"
+                       class="form-control" placeholder="Имя пользователя" autofocus required>
+            </div>
+            <div class="mb-4">
+                <label for="id_password" class="form-label">Пароль</label>
+                <input type="password" name="password" id="id_password"
+                       class="form-control" placeholder="••••••••" required>
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn-login">Войти в систему</button>
+        </form>
+
+        <hr>
+        <p class="login-footer mb-0">
+            Для получения доступа обратитесь к администратору системы
+        </p>
     </div>
 </div>
 </body>

@@ -14,6 +14,8 @@ from apps.accounts.models import UserRole
 
 def _get_role(request):
     """Вспомогательная функция: возвращает роль текущего пользователя."""
+    if request.user.is_superuser:
+        return UserRole.ADMIN
     try:
         return request.user.profile.role
     except Exception:

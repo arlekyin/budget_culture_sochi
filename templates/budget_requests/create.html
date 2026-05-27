@@ -3,36 +3,39 @@
 {% block title %}Новая заявка — {{ institution.short_name }}{% endblock %}
 
 {% block content %}
+<a href="{% url 'request_list' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> К списку заявок
+</a>
+
 <div class="mb-4">
-    <a href="{% url 'request_list' %}" class="text-muted text-decoration-none small">
-        <i class="bi bi-arrow-left"></i> К списку заявок
-    </a>
-    <h4 class="fw-bold mt-2 mb-0">Новая бюджетная заявка</h4>
-    <p class="text-muted">{{ institution.name }}</p>
+    <p class="page-title">Новая бюджетная заявка</p>
+    <p class="page-subtitle">{{ institution.name }}</p>
 </div>
 
-<div class="row">
+<div class="row g-4">
     <div class="col-md-6">
         <div class="card p-4">
             <form method="post">
                 {% csrf_token %}
                 {{ form|crispy }}
-                <div class="d-flex gap-2 mt-3">
+                <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i> Создать заявку
+                        <i class="bi bi-check-circle me-1"></i>Создать заявку
                     </button>
                     <a href="{% url 'request_list' %}" class="btn btn-outline-secondary">Отмена</a>
                 </div>
             </form>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="alert alert-info">
-            <h6 class="fw-bold"><i class="bi bi-info-circle me-1"></i>Инструкция</h6>
-            <ol class="mb-0 small">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <div style="font-size:12px;font-weight:600;color:#787774;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">
+                Инструкция
+            </div>
+            <ol style="font-size:13px;color:#2F3437;padding-left:18px;margin:0;line-height:1.7;">
                 <li>Выберите год планирования и тип периода</li>
                 <li>Укажите тип финансирования (субсидия, платные услуги и т.д.)</li>
-                <li>После создания заявки добавьте строки расходов с указанием КОСГУ</li>
+                <li>После создания добавьте строки расходов с кодами КОСГУ</li>
                 <li>Прикрепите файлы-обоснования (КП, счета, сметы)</li>
                 <li>Отправьте заявку в ЦБ кнопкой «Отправить на согласование»</li>
             </ol>

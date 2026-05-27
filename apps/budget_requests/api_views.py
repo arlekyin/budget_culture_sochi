@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from apps.classifiers.models import KOSGU, KVR
 from apps.accounts.models import UserRole
+from apps.accounts.utils import get_role
 
 from .models import BudgetRequest, RequestLine, RequestLineLog, RequestStatus
 from .serializers import (
@@ -29,15 +30,17 @@ class BudgetRequestListAPI(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        try:
-            role = user.profile.role
-        except Exception:
+        role = get_role(user)
+        if role is None:
             return BudgetRequest.objects.none()
 
         qs = BudgetRequest.objects.select_related('institution', 'created_by', 'reviewed_by')
 
         if role == UserRole.DIRECTOR:
-            qs = qs.filter(institution=user.profile.institution)
+            try:
+                qs = qs.filter(institution=user.profile.institution)
+            except Exception:
+                return BudgetRequest.objects.none()
 
         # Фильтры из query params
         req_status = self.request.query_params.get('status')
@@ -57,14 +60,10 @@ class BudgetRequestCreateAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request) -> Response:
-        try:
-            role = request.user.profile.role
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
-        if role != UserRole.DIRECTOR:
+        role = get_role(request.user)
+        if role not in (UserRole.DIRECTOR, UserRole.ADMIN):
             return Response(
-                {'detail': 'Только директор может создавать заявки.'},
+                {'detail': 'Создавать заявки могут только директор или администратор.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -100,19 +99,19 @@ class BudgetRequestSubmitAPI(APIView):
         except BudgetRequest.DoesNotExist:
             return Response({'detail': 'Заявка не найдена.'}, status=404)
 
-        try:
-            profile = request.user.profile
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
-        if profile.role != UserRole.DIRECTOR:
+        role = get_role(request.user)
+        if role not in (UserRole.DIRECTOR, UserRole.ADMIN):
             return Response(
-                {'detail': 'Только директор может отправлять заявки.'},
+                {'detail': 'Только директор или администратор может отправлять заявки.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if obj.institution != profile.institution:
-            return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+        if role == UserRole.DIRECTOR:
+            try:
+                if obj.institution != request.user.profile.institution:
+                    return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+            except Exception:
+                return Response({'detail': 'Профиль не найден.'}, status=404)
 
         if obj.status not in (RequestStatus.DRAFT, RequestStatus.RETURNED):
             return Response(
@@ -162,14 +161,10 @@ class BudgetRequestReviewAPI(APIView):
         except BudgetRequest.DoesNotExist:
             return Response({'detail': 'Заявка не найдена.'}, status=404)
 
-        try:
-            profile = request.user.profile
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
-        if profile.role not in (UserRole.ACCOUNTANT, UserRole.ADMIN):
+        role = get_role(request.user)
+        if role not in (UserRole.ACCOUNTANT, UserRole.ADMIN):
             return Response(
-                {'detail': 'Только бухгалтер может проверять заявки.'},
+                {'detail': 'Только бухгалтер или администратор может проверять заявки.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -213,19 +208,19 @@ class RequestLineAddAPI(APIView):
         except BudgetRequest.DoesNotExist:
             return Response({'detail': 'Заявка не найдена.'}, status=404)
 
-        try:
-            profile = request.user.profile
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
-        if profile.role != UserRole.DIRECTOR:
+        role = get_role(request.user)
+        if role not in (UserRole.DIRECTOR, UserRole.ADMIN):
             return Response(
-                {'detail': 'Только директор может добавлять строки.'},
+                {'detail': 'Только директор или администратор может добавлять строки.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if obj.institution != profile.institution:
-            return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+        if role == UserRole.DIRECTOR:
+            try:
+                if obj.institution != request.user.profile.institution:
+                    return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+            except Exception:
+                return Response({'detail': 'Профиль не найден.'}, status=404)
 
         if obj.status not in (RequestStatus.DRAFT, RequestStatus.RETURNED):
             return Response(
@@ -253,19 +248,19 @@ class RequestLineDeleteAPI(APIView):
         except BudgetRequest.DoesNotExist:
             return Response({'detail': 'Заявка не найдена.'}, status=404)
 
-        try:
-            profile = request.user.profile
-        except Exception:
-            return Response({'detail': 'Профиль не найден.'}, status=404)
-
-        if profile.role != UserRole.DIRECTOR:
+        role = get_role(request.user)
+        if role not in (UserRole.DIRECTOR, UserRole.ADMIN):
             return Response(
-                {'detail': 'Только директор может удалять строки.'},
+                {'detail': 'Только директор или администратор может удалять строки.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if obj.institution != profile.institution:
-            return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+        if role == UserRole.DIRECTOR:
+            try:
+                if obj.institution != request.user.profile.institution:
+                    return Response({'detail': 'Нет доступа к этой заявке.'}, status=403)
+            except Exception:
+                return Response({'detail': 'Профиль не найден.'}, status=404)
 
         if obj.status not in (RequestStatus.DRAFT, RequestStatus.RETURNED):
             return Response(

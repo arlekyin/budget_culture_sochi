@@ -2,31 +2,46 @@
 {% block title %}Учреждения{% endblock %}
 
 {% block content %}
-<h4 class="fw-bold mb-4">Подведомственные учреждения культуры</h4>
+<div class="mb-4">
+    <p class="page-title">Подведомственные учреждения культуры</p>
+    <p class="page-subtitle">г. Сочи — МКУ «ЦБ УК»</p>
+</div>
 
 <div class="row g-3">
     {% for inst in institutions %}
     <div class="col-md-4">
-        <div class="card h-100 p-3">
-            <div class="d-flex justify-content-between align-items-start">
-                <h6 class="fw-bold mb-1">{{ inst.short_name }}</h6>
-                <span class="badge bg-light text-dark border small">{{ inst.get_institution_type_display }}</span>
+        <div class="card p-4 h-100" style="transition:border-color .15s,box-shadow .15s;"
+             onmouseover="this.style.borderColor='#CCCCCC';this.style.boxShadow='0 2px 8px rgba(0,0,0,.04)';"
+             onmouseout="this.style.borderColor='#EAEAEA';this.style.boxShadow='none';">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span style="font-size:14px;font-weight:600;color:#111;line-height:1.3;">{{ inst.short_name }}</span>
+                <span class="badge" style="background:#F7F6F3;color:#555;border:1px solid #E0E0E0;font-size:10px;border-radius:4px;white-space:nowrap;">
+                    {{ inst.get_institution_type_display }}
+                </span>
             </div>
-            <p class="text-muted small mb-2">{{ inst.name }}</p>
+            <p style="font-size:12px;color:#787774;margin-bottom:12px;line-height:1.4;">{{ inst.name }}</p>
             {% if inst.head_name %}
-            <p class="small mb-1"><i class="bi bi-person me-1"></i>{{ inst.head_name }}</p>
+            <p style="font-size:12px;color:#2F3437;margin-bottom:4px;">
+                <i class="bi bi-person me-1" style="color:#AAAAAA;"></i>{{ inst.head_name }}
+            </p>
             {% endif %}
             {% if inst.address %}
-            <p class="small text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>{{ inst.address }}</p>
+            <p style="font-size:12px;color:#787774;margin-bottom:12px;">
+                <i class="bi bi-geo-alt me-1"></i>{{ inst.address }}
+            </p>
             {% endif %}
-            <a href="{% url 'institution_detail' inst.pk %}" class="btn btn-sm btn-outline-primary mt-auto">
-                Подробнее
-            </a>
+            <div class="mt-auto">
+                <a href="{% url 'institution_detail' inst.pk %}" class="btn btn-outline-secondary btn-sm">
+                    Подробнее
+                </a>
+            </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12">
-        <p class="text-muted text-center py-5">Учреждения не найдены</p>
+        <div class="text-center py-5" style="color:#787774;font-size:13px;">
+            Учреждения не найдены
+        </div>
     </div>
     {% endfor %}
 </div>

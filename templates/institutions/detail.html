@@ -2,62 +2,90 @@
 {% block title %}{{ institution.short_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-3">
-    <a href="{% url 'institution_list' %}" class="text-muted text-decoration-none small">
-        <i class="bi bi-arrow-left"></i> К списку учреждений
-    </a>
-</div>
+<a href="{% url 'institution_list' %}" class="breadcrumb-link">
+    <i class="bi bi-arrow-left"></i> К списку учреждений
+</a>
 
-<h4 class="fw-bold mb-1">{{ institution.short_name }}</h4>
-<p class="text-muted mb-4">{{ institution.name }}</p>
+<div class="mb-4">
+    <p class="page-title">{{ institution.short_name }}</p>
+    <p class="page-subtitle">{{ institution.name }}</p>
+</div>
 
 <div class="row g-4">
     <div class="col-md-4">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Информация</h6>
-            <table class="table table-sm table-borderless mb-0">
-                <tr><th class="text-muted fw-normal">Тип:</th><td>{{ institution.get_institution_type_display }}</td></tr>
-                <tr><th class="text-muted fw-normal">ИНН:</th><td>{{ institution.inn|default:"—" }}</td></tr>
-                <tr><th class="text-muted fw-normal">Руководитель:</th><td>{{ institution.head_name|default:"—" }}</td></tr>
-                <tr><th class="text-muted fw-normal">Адрес:</th><td>{{ institution.address|default:"—" }}</td></tr>
-            </table>
+        <!-- Информация -->
+        <div class="card p-4 mb-3">
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#787774;margin-bottom:14px;">
+                Реквизиты
+            </div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px;">
+                <span style="color:#787774;">Тип:</span>
+                <span>{{ institution.get_institution_type_display }}</span>
+                <span style="color:#787774;">ИНН:</span>
+                <span>{{ institution.inn|default:"—" }}</span>
+                <span style="color:#787774;">Руководитель:</span>
+                <span>{{ institution.head_name|default:"—" }}</span>
+                <span style="color:#787774;">Адрес:</span>
+                <span>{{ institution.address|default:"—" }}</span>
+            </div>
         </div>
 
-        <!-- Лимиты по годам -->
-        <div class="card p-3 mt-3">
-            <h6 class="fw-bold mb-3">Лимиты финансирования</h6>
+        <!-- Лимиты -->
+        <div class="card p-4">
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#787774;margin-bottom:14px;">
+                Лимиты финансирования
+            </div>
             {% for limit in limits %}
-            <div class="d-flex justify-content-between">
-                <span class="text-muted">{{ limit.year }} год</span>
-                <span class="fw-semibold">{{ limit.total_limit|floatformat:0 }} ₽</span>
+            <div class="d-flex justify-content-between align-items-center py-2"
+                 style="border-bottom:1px solid #F0F0F0;font-size:13px;">
+                <span style="color:#787774;">{{ limit.year }} год</span>
+                <span style="font-weight:600;">{{ limit.total_limit|floatformat:0 }} ₽</span>
             </div>
             {% empty %}
-            <p class="text-muted small">Лимиты не установлены</p>
+            <p style="font-size:13px;color:#787774;">Лимиты не установлены</p>
             {% endfor %}
         </div>
     </div>
 
     <div class="col-md-8">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Последние заявки</h6>
-            <table class="table table-sm table-hover">
-                <thead class="table-light">
-                    <tr><th>№</th><th>Год</th><th>Сумма (₽)</th><th>Статус</th><th></th></tr>
-                </thead>
-                <tbody>
-                    {% for req in requests %}
-                    <tr>
-                        <td>{{ req.pk }}</td>
-                        <td>{{ req.period_year }}</td>
-                        <td>{{ req.total_amount|floatformat:2 }}</td>
-                        <td><span class="badge badge-{{ req.status }}">{{ req.get_status_display }}</span></td>
-                        <td><a href="{% url 'request_detail' req.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-muted text-center">Заявок нет</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card">
+            <div class="p-4" style="border-bottom:1px solid #F0F0F0;">
+                <span style="font-size:14px;font-weight:600;color:#111;">Последние заявки</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">№</th>
+                            <th>Год</th>
+                            <th>Сумма (₽)</th>
+                            <th>Статус</th>
+                            <th class="pe-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td class="ps-4" style="color:#787774;">#{{ req.pk }}</td>
+                            <td>{{ req.period_year }}</td>
+                            <td style="font-weight:600;">{{ req.total_amount|floatformat:0 }}</td>
+                            <td><span class="badge badge-{{ req.status }}">{{ req.get_status_display }}</span></td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'request_detail' req.pk %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4" style="color:#787774;font-size:13px;">
+                                Заявок нет
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import BudgetRequest, RequestLine, RequestLineLog, RequestStatus
 from apps.classifiers.models import KOSGU, KVR
+from apps.institutions.models import Institution
 
 
 class RequestLineLogSerializer(serializers.ModelSerializer):
@@ -103,10 +104,16 @@ class BudgetRequestSerializer(serializers.ModelSerializer):
 class BudgetRequestCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания новой заявки."""
 
+    institution = serializers.PrimaryKeyRelatedField(
+        queryset=Institution.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = BudgetRequest
         fields = (
-            'period_year', 'period_type', 'period_quarter',
+            'institution', 'period_year', 'period_type', 'period_quarter',
             'funding_type', 'deadline',
         )
 
@@ -120,11 +127,16 @@ class BudgetRequestCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         user = request.user
-        try:
-            institution = user.profile.institution
-        except Exception:
-            raise serializers.ValidationError('У вас нет привязанного учреждения.')
-
+        institution = validated_data.get('institution')
+        if not institution:
+            try:
+                institution = user.profile.institution
+            except Exception:
+                pass
+        if not institution:
+            raise serializers.ValidationError(
+                {'institution': 'Укажите учреждение или привяжите его к профилю.'}
+            )
         validated_data['institution'] = institution
         validated_data['created_by'] = user
         return super().create(validated_data)

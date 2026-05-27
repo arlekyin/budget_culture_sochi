@@ -12,6 +12,21 @@ class BudgetRequestForm(forms.ModelForm):
         }
 
 
+class AdminBudgetRequestForm(BudgetRequestForm):
+    """Форма для администратора: позволяет выбрать учреждение вручную."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.institutions.models import Institution
+        self.fields['institution'] = forms.ModelChoiceField(
+            queryset=Institution.objects.filter(is_active=True).order_by('short_name'),
+            label='Учреждение',
+        )
+        # Ставим institution первым в порядке отображения
+        field_order = ['institution'] + [f for f in self.fields if f != 'institution']
+        self.fields = {k: self.fields[k] for k in field_order}
+
+
 class RequestLineForm(forms.ModelForm):
     class Meta:
         model = RequestLine
