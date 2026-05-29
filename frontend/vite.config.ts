@@ -9,6 +9,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    outDir: '../static/frontend',
+    emptyOutDir: true,
+  },
   server: {
     port: 5173,
     proxy: {
