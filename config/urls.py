@@ -1,8 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,7 +20,5 @@ urlpatterns = [
     path('api/institutions/', include('apps.institutions.api_urls')),
     path('api/monitoring/', include('apps.monitoring.api_urls')),
     path('api/reports/', include('apps.reports.api_urls')),
-    # Catch-all: отдаём index.html React-приложения для всех не-API маршрутов
-    re_path(r'^(?!api/|admin/|accounts/|dashboard/|requests/|institutions/|classifiers/|reports/|static/|media/).*$',
-            TemplateView.as_view(template_name='react_index.html'), name='react_app'),
+    path('', RedirectView.as_view(url='/dashboard/', permanent=False)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
