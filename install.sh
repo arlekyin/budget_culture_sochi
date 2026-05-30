@@ -7,31 +7,64 @@ echo "  Установка системы «Бюджет-Культура Соч
 echo "================================================================"
 echo ""
 
-# Проверяем Python
-if ! command -v python3 &>/dev/null; then
-    echo "ОШИБКА: Python 3 не найден."
+# Ищем подходящий Python (3.11 или 3.12) — сначала Homebrew, потом системный
+PYTHON_CMD=""
+for candidate in \
+    /opt/homebrew/bin/python3.12 \
+    /opt/homebrew/bin/python3.11 \
+    /usr/local/bin/python3.12 \
+    /usr/local/bin/python3.11 \
+    python3.12 \
+    python3.11; do
+    if command -v "$candidate" &>/dev/null; then
+        PYTHON_CMD="$candidate"
+        break
+    fi
+done
+
+# Если не нашли — пробуем общий python3 и проверяем версию
+if [ -z "$PYTHON_CMD" ]; then
+    if ! command -v python3 &>/dev/null; then
+        echo "ОШИБКА: Python 3.11 или 3.12 не найден."
+        echo ""
+        echo "Установите через Homebrew:"
+        echo "  brew install python@3.11"
+        echo ""
+        read -p "Нажмите Enter для выхода..."
+        exit 1
+    fi
+    PYTHON_CMD="python3"
+fi
+
+PYTHON_MINOR=$("$PYTHON_CMD" -c "import sys; print(sys.version_info.minor)")
+PYTHON_MAJOR=$("$PYTHON_CMD" -c "import sys; print(sys.version_info.major)")
+
+echo "Python найден: $("$PYTHON_CMD" --version)"
+
+if [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 10 ]; then
     echo ""
-    echo "Установите его с официального сайта:"
-    echo "https://www.python.org/downloads/"
+    echo "ОШИБКА: Python $("$PYTHON_CMD" --version) слишком старый."
+    echo "Требуется Python 3.11 или 3.12."
+    echo ""
+    echo "Установите через Homebrew:"
+    echo "  brew install python@3.11"
+    echo ""
+    echo "Затем удалите папку venv и запустите снова:"
+    echo "  rm -rf venv && ./install.sh"
     echo ""
     read -p "Нажмите Enter для выхода..."
     exit 1
 fi
 
-echo "Python найден: $(python3 --version)"
-
-PYTHON_MINOR=$(python3 -c "import sys; print(sys.version_info.minor)")
-PYTHON_MAJOR=$(python3 -c "import sys; print(sys.version_info.major)")
-
 if [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -ge 13 ]; then
     echo ""
-    echo "ОШИБКА: Python $(python3 --version) не поддерживается."
+    echo "ОШИБКА: Python $("$PYTHON_CMD" --version) не поддерживается."
     echo "Требуется Python 3.11 или 3.12."
     echo ""
-    echo "Установите нужную версию через Homebrew:"
+    echo "Установите через Homebrew:"
     echo "  brew install python@3.11"
     echo ""
-    echo "Затем удалите папку venv (если есть) и запустите снова:"
+    echo "Затем удалите папку venv и запустите снова:"
     echo "  rm -rf venv && ./install.sh"
     echo ""
     read -p "Нажмите Enter для выхода..."
@@ -43,7 +76,7 @@ echo ""
 # Виртуальная среда
 echo "[Шаг 1 из 4] Подготовка рабочей среды Python..."
 if [ ! -d "venv" ]; then
-    python3 -m venv venv
+    "$PYTHON_CMD" -m venv venv
 fi
 source venv/bin/activate
 echo "Готово."
